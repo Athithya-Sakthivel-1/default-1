@@ -63,4 +63,31 @@ pip install --quiet bentoml docker kubernetes
 echo "Cleaning up unused packages..."
 sudo apt autoremove -y
 
+# Install and start Neo4j
+echo "Setting up Neo4j database..."
+docker run \
+  --name neo4j \
+  -p 7474:7474 -p 7687:7687 \
+  -d \
+  -e NEO4J_AUTH=neo4j/password \
+  neo4j
+
+# Wait a few seconds to ensure Neo4j starts
+sleep 10  
+
+# Check if Neo4j is running
+docker ps | grep neo4j || { echo "Neo4j failed to start"; exit 1; }
+
+# Start Neo4j if not already running
+docker start neo4j
+
+# Run a test query in Neo4j
+echo "Testing Neo4j connection..."
+docker exec -it neo4j bin/cypher-shell -u neo4j -p password -d system "RETURN 'Neo4j is running' AS status;"
+
+# Display Neo4j URL for Codespaces
+if [ -n "$CODESPACE_NAME" ]; then
+    echo "Neo4j Browser is available at: https://${CODESPACE_NAME}-7474.app.github.dev"
+fi
+
 echo "Setup complete. System is ready."
