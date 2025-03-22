@@ -17,6 +17,9 @@ export DEBCONF_NONINTERACTIVE_SEEN=true
 echo "Updating system and installing dependencies..."
 sudo apt update -y && sudo apt upgrade -y
 
+# Resolve SSH configuration conflict automatically
+echo "1" | sudo dpkg --force-confnew --configure -a
+
 # Install Python 3.11 (fixed for Codespaces)
 echo "Installing Python 3.11..."
 sudo add-apt-repository -y ppa:deadsnakes/ppa
@@ -69,7 +72,15 @@ if [ ! -d "$PROJECT_ROOT/.venv" ]; then
     poetry env use python3.11 || true
 fi
 
-# Ensure pyproject.toml exists at the correct location
+# Ensure correct package directory exists
+PACKAGE_DIR="$PROJECT_ROOT/src/fraud_detection_system"
+if [ ! -d "$PACKAGE_DIR" ]; then
+    echo "Creating missing package directory: $PACKAGE_DIR"
+    mkdir -p "$PACKAGE_DIR"
+    touch "$PACKAGE_DIR/__init__.py"
+fi
+
+# Ensure `pyproject.toml` exists at the correct location
 if [ ! -f "$PROJECT_ROOT/pyproject.toml" ]; then
     echo "Creating default Poetry project..."
     poetry init --no-interaction --name "fraud-detection-system"

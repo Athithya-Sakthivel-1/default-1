@@ -5,7 +5,9 @@ description = "Fraud detection system using ML and graph-based techniques"
 authors = ["Your Name <your.email@example.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{ include = "fraud_detection_system", from = "src" }]  # ✅ Ensures Poetry finds the package
+
+# Specify correct package path
+packages = [{ include = "fraud_detection_system", from = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
@@ -49,7 +51,7 @@ requests = "*"
 tqdm = "*"
 faker = "*"
 
-[tool.poetry.group.dev.dependencies]
+[tool.poetry.group.dev.dependencies]  # New dev dependencies group
 pytest = "*"
 pytest-cov = "*"
 black = "*"
