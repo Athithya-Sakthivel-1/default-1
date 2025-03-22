@@ -1,0 +1,73 @@
+# Exclude Git and version control files
+.git/
+.gitignore
+
+# Python Cache & Compiled Files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+
+# Local Environment & Virtualenv
+venv/
+.env
+*.venv
+*.conda
+*.virtualenv
+
+# Logs and temporary files
+logs/
+*.log
+*.out
+*.err
+
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints/
+
+# Data & Databases (Avoid copying local datasets into container)
+data/raw/
+data/processed/
+data/database/
+*.duckdb
+*.sqlite
+*.db
+*.jsonl
+fraud_graph.db/
+
+# Model Artifacts (Avoid copying large model files into build context)
+src/models/model_registry/
+*.pkl
+*.json
+*.bin
+*.onnx
+
+# API Secrets (Security Measure)
+api/secrets/
+config/settings.yaml
+.env
+*.key
+*.pem
+
+# Build and Dependency Artifacts
+dist/
+build/
+node_modules/
+.cache/
+.coverage
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.iml
+
+# Kubernetes Deployment Files
+deployment/k8s/
+deployment/containerd/
+
+# Docker Build & Temp Files
+docker/
+docker-compose.override.yml
+*.pid
+*.sock
+*.lock

@@ -1,15 +1,17 @@
 #!/bin/bash
 
-set -e  # Exit immediately if a command fails
+set -e  # Exit on failure
 
 echo "Starting automated setup..."
 
-# Ensure script is executed from the correct directory
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR" || exit 1
+# Dynamically detect the project root (assumes this script is inside the repo)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$PROJECT_ROOT" || exit 1
+echo "Detected project root: $PROJECT_ROOT"
 
-# Prevent interactive prompts during package installation
+# Prevent interactive prompts
 export DEBIAN_FRONTEND=noninteractive
+export DEBCONF_NONINTERACTIVE_SEEN=true
 
 # Update system & install required packages
 echo "Updating system and installing dependencies..."
@@ -40,18 +42,19 @@ else
     echo "Kubectl is already installed. Skipping..."
 fi
 
-# Install K3s if not installed
+# Install K3s correctly in Codespaces
 if ! command -v k3s &>/dev/null; then
     echo "Installing K3s..."
-    curl -sfL https://get.k3s.io | sh -
+    curl -sfL https://get.k3s.io | sh -s - --write-kubeconfig-mode 644
+    sudo service k3s start || true  # Avoid systemd issues
 else
     echo "K3s is already installed. Skipping..."
 fi
 
-# Install Poetry if not installed
+# Install Poetry correctly
 if ! command -v poetry &>/dev/null; then
     echo "Installing Poetry..."
-    curl -sSL https://install.python-poetry.org | python3 - --quiet
+    curl -sSL https://install.python-poetry.org | python3 -
     export PATH="$HOME/.local/bin:$PATH"
 else
     echo "Poetry is already installed. Skipping..."
@@ -59,44 +62,46 @@ fi
 
 # Configure Poetry
 poetry config virtualenvs.in-project true
-poetry env use python3.11 || true  # Avoid breaking if already configured
 
-# Ensure pyproject.toml exists at the ROOT directory
-if [ ! -f "pyproject.toml" ]; then
-    echo "pyproject.toml not found in root. Creating default project..."
+# Ensure correct virtual environment usage
+if [ ! -d "$PROJECT_ROOT/.venv" ]; then
+    echo "Creating a virtual environment..."
+    poetry env use python3.11 || true
+fi
+
+# Ensure pyproject.toml exists at the correct location
+if [ ! -f "$PROJECT_ROOT/pyproject.toml" ]; then
+    echo "Creating default Poetry project..."
     poetry init --no-interaction --name "fraud-detection-system"
 fi
 
-# Install dependencies & project
+# Install project dependencies
 echo "Installing project dependencies..."
-poetry install --no-interaction --quiet
+poetry install --no-interaction
 pip install --quiet bentoml docker kubernetes
 
 # Clean up unused packages
 echo "Cleaning up unused packages..."
 sudo apt autoremove -y
 
-# Ensure Docker is running in Codespaces
-echo "Ensuring Docker is running..."
+# Ensure Docker is running
+echo "Starting Docker..."
 sudo service docker start || true
 
-# Install and start Neo4j
-echo "Setting up Neo4j database..."
-docker run \
-  --name neo4j \
-  -p 7474:7474 -p 7687:7687 \
-  -d \
-  -e NEO4J_AUTH=neo4j/password \
-  neo4j
+# Setup and start Neo4j
+if [ "$(docker ps -aq -f name=neo4j)" ]; then
+    echo "Neo4j container already exists. Restarting..."
+    docker start neo4j || true
+else
+    echo "Starting new Neo4j container..."
+    docker run --name neo4j -p 7474:7474 -p 7687:7687 -d -e NEO4J_AUTH=neo4j/password neo4j
+fi
 
 # Wait for Neo4j to initialize
 echo "Waiting for Neo4j to initialize..."
 sleep 10
 
-# Start Neo4j if not already running
-docker start neo4j || true
-
-# Run a test query in Neo4j
+# Test Neo4j connection
 echo "Testing Neo4j connection..."
 docker exec -i neo4j bin/cypher-shell -u neo4j -p password -d system "RETURN 'Neo4j is running' AS status;"
 

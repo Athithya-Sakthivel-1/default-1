@@ -1,0 +1,99 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+*.so
+.DS_Store
+
+# Virtual Environments
+venv/
+.env
+*.venv
+*.conda
+*.virtualenv
+
+# Jupyter Notebooks Checkpoints
+.ipynb_checkpoints/
+
+# Logs & Debugging
+logs/
+*.log
+*.out
+*.err
+
+# Compiled and temporary files
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Data Files
+data/raw/
+data/processed/
+data/database/
+*.duckdb
+*.sqlite
+*.db
+*.pkl
+*.bin
+*.jsonl
+fraud_graph.db/
+
+# Model Artifacts
+src/models/model_registry/
+*.pkl
+*.json
+*.bin
+*.onnx
+
+# API & Secrets
+api/secrets/
+api/__pycache__/
+*.key
+*.pem
+.env
+config/settings.yaml
+
+# Containers & Dependencies
+docker/
+docker-compose.override.yml
+*.pid
+*.sock
+*.lock
+
+# IDE / Editor Files
+.vscode/
+.idea/
+*.iml
+
+# Build and deployment artifacts
+dist/
+build/
+*.tar.gz
+node_modules/
+__pycache__/
+.cache/
+.coverage
+
+# Flyte & ZenML pipelines
+.orchestration/
+.orchestration_cache/
+pipelines/
+flyte_outputs/
+zenml_outputs/
+
+# Pytest & Coverage Reports
+.coverage
+.tox/
+nosetests.xml
+test-reports/
+
+# Kubernetes Configurations (Local)
+deployment/k8s/*.yaml
+deployment/containerd/*.toml
+
+# Ignore personal notes or misc files
+*.md~
