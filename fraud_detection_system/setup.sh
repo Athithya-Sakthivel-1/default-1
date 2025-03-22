@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e  # Exit if any command fails
+set -e  # Exit immediately if a command fails
 
 echo "Starting automated setup..."
 
@@ -8,14 +8,27 @@ echo "Starting automated setup..."
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR" || exit 1
 
+# Prevent interactive prompts during package installation
+export DEBIAN_FRONTEND=noninteractive
+
 # Update system & install required packages
 echo "Updating system and installing dependencies..."
-sudo apt update -y && sudo apt install -y --no-install-recommends \
-    python3.11 python3.11-venv python3.11-dev python3-pip \
+sudo apt update -y && sudo apt upgrade -y
+
+# Install Python 3.11 (fixed for Codespaces)
+echo "Installing Python 3.11..."
+sudo add-apt-repository -y ppa:deadsnakes/ppa
+sudo apt update -y && sudo apt install -y \
+    python3.11 python3.11-venv python3.11-dev python3-pip
+
+# Install essential dependencies
+echo "Installing required libraries..."
+sudo apt install -y --no-install-recommends \
     build-essential libssl-dev libffi-dev \
     libpq-dev libcurl4-openssl-dev \
     graphviz libgraphviz-dev \
-    docker.io containerd software-properties-common gpg curl
+    docker.io containerd software-properties-common gpg curl \
+    openssh-server
 
 # Install Kubectl if not installed
 if ! command -v kubectl &>/dev/null; then
@@ -63,6 +76,10 @@ pip install --quiet bentoml docker kubernetes
 echo "Cleaning up unused packages..."
 sudo apt autoremove -y
 
+# Ensure Docker is running in Codespaces
+echo "Ensuring Docker is running..."
+sudo service docker start || true
+
 # Install and start Neo4j
 echo "Setting up Neo4j database..."
 docker run \
@@ -72,18 +89,16 @@ docker run \
   -e NEO4J_AUTH=neo4j/password \
   neo4j
 
-# Wait a few seconds to ensure Neo4j starts
-sleep 10  
-
-# Check if Neo4j is running
-docker ps | grep neo4j || { echo "Neo4j failed to start"; exit 1; }
+# Wait for Neo4j to initialize
+echo "Waiting for Neo4j to initialize..."
+sleep 10
 
 # Start Neo4j if not already running
-docker start neo4j
+docker start neo4j || true
 
 # Run a test query in Neo4j
 echo "Testing Neo4j connection..."
-docker exec -it neo4j bin/cypher-shell -u neo4j -p password -d system "RETURN 'Neo4j is running' AS status;"
+docker exec -i neo4j bin/cypher-shell -u neo4j -p password -d system "RETURN 'Neo4j is running' AS status;"
 
 # Display Neo4j URL for Codespaces
 if [ -n "$CODESPACE_NAME" ]; then
