@@ -108,17 +108,4 @@ else
     docker run --name neo4j -p 7474:7474 -p 7687:7687 -d -e NEO4J_AUTH=neo4j/password neo4j
 fi
 
-# Wait for Neo4j to initialize
-echo "Waiting for Neo4j to initialize..."
-sleep 10
-
-# Test Neo4j connection
-echo "Testing Neo4j connection..."
-docker exec -i neo4j bin/cypher-shell -u neo4j -p password -d system "RETURN 'Neo4j is running' AS status;"
-
-# Display Neo4j URL for Codespaces
-if [ -n "$CODESPACE_NAME" ]; then
-    echo "Neo4j Browser is available at: https://${CODESPACE_NAME}-7474.app.github.dev"
-fi
-
 echo "Setup complete. System is ready."
