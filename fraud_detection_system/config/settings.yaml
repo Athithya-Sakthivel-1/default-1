@@ -7,10 +7,12 @@ project:
   log_level: "INFO"
 
 data:
-  raw_data_path: "data/raw/"
-  processed_data_path: "data/processed/"
-  duckdb_path: "data/database/fraud_data.duckdb"
-  neo4j_db_path: "data/database/fraud_graph.db"
+  raw_data_path: "../data/raw/"
+  processed_data_path: "../data/processed/"
+  duckdb_path: "../data/database/fraud_data.duckdb"
+  neo4j_db_path: "../data/database/fraud_graph.db"
+  s3_bucket: "robust-mlops-1"
+  s3_prefix: "fraud_detection_system/data/"
 
 ml_models:
   isolation_forest:
