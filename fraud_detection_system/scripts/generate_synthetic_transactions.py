@@ -1,66 +1,68 @@
+import os
 import duckdb
-import faker
-import random
-import uuid
-from datetime import datetime, timedelta
+import pandas as pd
+from faker import Faker
+from src.utils.config_loader import CONFIG
 
-# Initialize Faker
-fake = faker.Faker()
+# Initialize Faker instance
+fake = Faker()
 
-# Database file
-DB_PATH = "data/database/fraud_data.duckdb"
+# Get file paths from settings.yaml
+RAW_DATA_PATH = CONFIG["data"]["raw_data_path"]
+DUCKDB_PATH = CONFIG["data"]["duckdb_path"]
 
-# Generate synthetic transaction data
-def generate_synthetic_transactions(num_records=10000, fraud_ratio=0.02):
-    transactions = []
-    
+# Ensure directories exist
+os.makedirs(RAW_DATA_PATH, exist_ok=True)
+os.makedirs(os.path.dirname(DUCKDB_PATH), exist_ok=True)
+
+def generate_synthetic_data(num_records=10000):
+    """Generates synthetic transaction data."""
+    data = []
     for _ in range(num_records):
-        transaction_id = str(uuid.uuid4())
-        user_id = str(uuid.uuid4())
-        merchant_id = str(uuid.uuid4())
-        device_id = str(uuid.uuid4())
-        ip_address = fake.ipv4()
-        location = fake.city()
-        timestamp = fake.date_time_between(start_date="-1y", end_date="now")
-        transaction_amount = round(random.uniform(1, 10000), 2)
-        transaction_type = random.choice(["purchase", "transfer", "withdrawal"])
-        
-        # Simulate fraud based on fraud ratio
-        is_fraud = 1 if random.random() < fraud_ratio else 0
-
-        transactions.append((
-            transaction_id, user_id, merchant_id, device_id, ip_address,
-            location, timestamp, transaction_amount, transaction_type, is_fraud
-        ))
-
-    return transactions
-
-# Store data in DuckDB
-def store_in_duckdb(data):
-    conn = duckdb.connect(DB_PATH)
+        data.append({
+            "transaction_id": fake.uuid4(),
+            "timestamp": fake.date_time_this_decade(),
+            "user_id": fake.uuid4(),
+            "amount": round(fake.random_number(digits=5), 2),
+            "transaction_type": fake.random_element(elements=("credit", "debit")),
+            "merchant": fake.company(),
+            "location": fake.city(),
+            "device": fake.random_element(elements=("mobile", "desktop", "tablet")),
+            "ip_address": fake.ipv4(),
+        })
     
+    return pd.DataFrame(data)
+
+def store_in_duckdb(df):
+    """Stores synthetic transactions in DuckDB."""
+    conn = duckdb.connect(DUCKDB_PATH)
     conn.execute("""
-    CREATE TABLE IF NOT EXISTS transactions (
-        transaction_id VARCHAR PRIMARY KEY,
-        user_id VARCHAR,
-        merchant_id VARCHAR,
-        device_id VARCHAR,
-        ip_address VARCHAR,
-        location VARCHAR,
-        timestamp TIMESTAMP,
-        transaction_amount FLOAT,
-        transaction_type VARCHAR,
-        is_fraud BOOLEAN
-    )
+        CREATE TABLE IF NOT EXISTS transactions (
+            transaction_id STRING,
+            timestamp TIMESTAMP,
+            user_id STRING,
+            amount FLOAT,
+            transaction_type STRING,
+            merchant STRING,
+            location STRING,
+            device STRING,
+            ip_address STRING
+        )
     """)
-
-    conn.executemany("""
-    INSERT INTO transactions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, data)
-
+    conn.register("df_temp", df)
+    conn.execute("INSERT INTO transactions SELECT * FROM df_temp")
     conn.close()
-    print(f"✅ {len(data)} synthetic transactions stored in DuckDB.")
 
 if __name__ == "__main__":
-    data = generate_synthetic_transactions(num_records=50000, fraud_ratio=0.05)
-    store_in_duckdb(data)
+    print("Generating synthetic transactions...")
+    df = generate_synthetic_data(num_records=10000)
+    
+    # Save locally as CSV (raw data)
+    csv_path = os.path.join(RAW_DATA_PATH, "transactions.csv")
+    df.to_csv(csv_path, index=False)
+    
+    print(f"Synthetic data saved at: {csv_path}")
+    
+    # Store in DuckDB
+    store_in_duckdb(df)
+    print(f"Data successfully stored in DuckDB at: {DUCKDB_PATH}")
