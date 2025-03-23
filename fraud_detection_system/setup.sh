@@ -33,7 +33,13 @@ sudo apt install -y --no-install-recommends \
     libpq-dev libcurl4-openssl-dev \
     graphviz libgraphviz-dev \
     docker.io containerd software-properties-common gpg curl \
-    openssh-server
+    openssh-server unzip
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+rm -rf awscliv2.zip aws/
+
 
 # Install Kubectl if not installed
 if ! command -v kubectl &>/dev/null; then
@@ -89,23 +95,14 @@ fi
 # Install project dependencies
 echo "Installing project dependencies..."
 poetry install --no-interaction
-pip install --quiet bentoml docker kubernetes
+pip install --quiet bentoml docker kubernetes boto3
 
 # Clean up unused packages
 echo "Cleaning up unused packages..."
 sudo apt autoremove -y
 
-# Ensure Docker is running
-echo "Starting Docker..."
-sudo service docker start || true
+echo -e "\ncd fraud_detection_system\nsource .venv/bin/activate" >> ~/.bashrc
+source ~/.bashrc
 
-# Setup and start Neo4j
-if [ "$(docker ps -aq -f name=neo4j)" ]; then
-    echo "Neo4j container already exists. Restarting..."
-    docker start neo4j || true
-else
-    echo "Starting new Neo4j container..."
-    docker run --name neo4j -p 7474:7474 -p 7687:7687 -d -e NEO4J_AUTH=neo4j/password neo4j
-fi
 
 echo "Setup complete. System is ready."

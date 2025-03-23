@@ -84,6 +84,8 @@ __pycache__/
 pipelines/
 flyte_outputs/
 zenml_outputs/
+data
+data/
 
 # Pytest & Coverage Reports
 .coverage

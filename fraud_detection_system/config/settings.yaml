@@ -1,100 +1,48 @@
-# General Project Configuration
-project:
-  name: "Fraud Detection System"
+settings:
+  name: "fraud_detection_system"
   version: "1.0.0"
-  environment: "local"  # Options: local, staging, production
-  logging_level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR
-  enable_encryption: true  # Enable data encryption for sensitive data
+  author: "Your Name"
+  log_level: "INFO"
 
-# Data Paths
+
 data:
-  raw:
-    transactions: "data/raw/transactions.csv"
-    user_behavior_logs: "data/raw/user_behavior_logs.parquet"
-    kaggle_fraud_data: "data/raw/kaggle_credit_card_fraud.csv"
-  processed:
-    features: "data/processed/features.parquet"
-    fraud_labels: "data/processed/fraud_labels.parquet"
-  database:
-    duckdb: "data/database/fraud_data.duckdb"
-    neo4j: "data/database/fraud_graph.db"
+  raw_data_path: "../data/raw/"
+  processed_data_path: "../data/processed/"
+  duckdb_path: "../data/database/fraud_data.duckdb"
+  neo4j_db_path: "../data/database/fraud_graph.db"
+  s3_bucket: "robust-mlops-1"
+  s3_prefix: "fraud_detection_system/data/"
+  aws_region: "us-east-1"
 
-# Model Paths
-models:
-  isolation_forest: "src/models/model_registry/isolation_forest.pkl"
-  xgboost: "src/models/model_registry/xgboost_model.json"
-  graph_anomaly: "src/models/model_registry/graph_anomaly_model.bin"
+security:
+  enable_pii_masking: true
+  enable_data_encryption: true
+  encryption_key: "your-secret-key"  # Store securely in env variables
 
-# API Configuration
+ml_models:
+  isolation_forest:
+    model_path: "../src/models/model_registry/isolation_forest.pkl"
+    contamination: 0.05
+  xgboost:
+    model_path: "../src/models/model_registry/xgboost_model.json"
+    max_depth: 3
+    learning_rate: 0.1
+  graph_model:
+    model_path: "../src/models/model_registry/graph_anomaly_model.bin"
+
 api:
   host: "0.0.0.0"
   port: 8000
-  enable_auth: true  # Enable authentication for API endpoints
-  auth_token: "your-secure-token-here"  # Change in production
-  request_timeout: 30  # API request timeout in seconds
+  debug: false
 
-# Database Configuration
-database:
-  duckdb:
-    file_path: "data/database/fraud_data.duckdb"
-  neo4j:
-    uri: "bolt://localhost:7687"
-    user: "neo4j"
-    password: "password"  # Change in production
-
-# Feature Store Configuration (Feast)
-feature_store:
-  backend: "sqlite"
-  path: "data/feature_store/feature_store.db"
-
-# Orchestration Configuration
 orchestration:
-  enabled: true
-  flyte:
-    enabled: true
-    config_file: "orchestration/flyte_workflows.py"
-  zenml:
-    enabled: true
-    pipeline_file: "orchestration/zenml_pipeline.py"
+  enable_flyte: true
+  enable_zenml: true
 
-# Security Settings
-security:
-  pii_masking: true
-  encryption:
-    enabled: true
-    algorithm: "AES"
-    key: "your-32-byte-encryption-key"  # Change in production
-  model_signing:
-    enabled: true
-    key_path: "security/signing_key.pem"
-
-# Monitoring & Logging
 monitoring:
   enable_drift_detection: true
-  drift_threshold: 0.05  # Drift detection sensitivity
-  model_performance_logging: true
-  logging_path: "logs/"
-  alerting:
-    enabled: true
-    alert_email: "admin@example.com"
+  drift_detection_threshold: 0.05
 
-# Deployment Configuration
 deployment:
   container_runtime: "containerd"
-  kubernetes:
-    enabled: true
-    namespace: "fraud-detection"
-    deployment_file: "deployment/k8s/fraud-detection-deployment.yaml"
-    service_file: "deployment/k8s/fraud-detection-service.yaml"
-    ingress_file: "deployment/k8s/ingress.yaml"
-
-# Testing Configuration
-testing:
-  run_unit_tests: true
-  run_integration_tests: true
-  test_data_path: "tests/test_data/"
-
-# Development Settings
-dev:
-  enable_debug_mode: false
-  auto_reload: false  # Enable for hot-reloading during development
+  enable_k3s: true  # Removed extra period that caused a syntax error
