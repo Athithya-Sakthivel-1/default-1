@@ -1,7 +1,4 @@
 # Exclude Git and version control files
-.git/
-.gitignore
-
 # Python Cache & Compiled Files
 __pycache__/
 *.pyc

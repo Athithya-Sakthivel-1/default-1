@@ -1,34 +1,27 @@
-settings:
+# config/settings.yaml
+
+project:
   name: "fraud_detection_system"
   version: "1.0.0"
   author: "Your Name"
   log_level: "INFO"
 
-
 data:
-  raw_data_path: "../data/raw/"
-  processed_data_path: "../data/processed/"
-  duckdb_path: "../data/database/fraud_data.duckdb"
-  neo4j_db_path: "../data/database/fraud_graph.db"
-  s3_bucket: "robust-mlops-1"
-  s3_prefix: "fraud_detection_system/data/"
-  aws_region: "us-east-1"
-
-security:
-  enable_pii_masking: true
-  enable_data_encryption: true
-  encryption_key: "your-secret-key"  # Store securely in env variables
+  raw_data_path: "data/raw/"
+  processed_data_path: "data/processed/"
+  duckdb_path: "data/database/fraud_data.duckdb"
+  neo4j_db_path: "data/database/fraud_graph.db"
 
 ml_models:
   isolation_forest:
-    model_path: "../src/models/model_registry/isolation_forest.pkl"
+    model_path: "src/models/model_registry/isolation_forest.pkl"
     contamination: 0.05
   xgboost:
-    model_path: "../src/models/model_registry/xgboost_model.json"
+    model_path: "src/models/model_registry/xgboost_model.json"
     max_depth: 3
     learning_rate: 0.1
   graph_model:
-    model_path: "../src/models/model_registry/graph_anomaly_model.bin"
+    model_path: "src/models/model_registry/graph_anomaly_model.bin"
 
 api:
   host: "0.0.0.0"
@@ -39,10 +32,16 @@ orchestration:
   enable_flyte: true
   enable_zenml: true
 
+security:
+  enable_pii_masking: true
+  enable_data_encryption: true
+  encryption_key: "your-secret-key"  # Store securely in env variables
+
 monitoring:
   enable_drift_detection: true
   drift_detection_threshold: 0.05
 
 deployment:
   container_runtime: "containerd"
-  enable_k3s: true  # Removed extra period that caused a syntax error
+  enable_k3s: true
+
