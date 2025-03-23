@@ -95,7 +95,6 @@ fi
 # Install project dependencies
 echo "Installing project dependencies..."
 poetry install --no-interaction
-pip install --quiet bentoml docker kubernetes boto3
 
 # Clean up unused packages
 echo "Cleaning up unused packages..."
